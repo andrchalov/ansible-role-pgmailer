@@ -1,0 +1,4 @@
+---
+- name: plan to restart pgmailer
+  set_fact:
+    __pgmailer_restart: true

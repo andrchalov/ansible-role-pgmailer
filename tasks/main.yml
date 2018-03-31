@@ -1,0 +1,37 @@
+---
+- name: Create pgmailer dir
+  file:
+    dest: "{{pgmailer_dir}}"
+    state: directory
+
+- name: Copy pgmailer sender script
+  copy:
+    src: "{{role_path}}/files/pgmailer/pgmailer.py"
+    dest: "{{pgmailer_dir}}"
+    mode: "0755"
+  notify: plan to restart pgmailer
+
+- meta: flush_handlers
+
+- name: (re)start pgmailer
+  docker_container:
+    name: pgmailer
+    image: "{{pgmailer_docker_image}}"
+    network_mode: host
+    env:
+      PGHOST: "{{pgmailer_pghost}}"
+      PGDATABASE: "{{pgmailer_pgdatabase}}"
+      PGUSER: "{{pgmailer_pguser}}"
+      PGPASSWORD: "{{pgmailer_pgpassword}}"
+      SMTP_HOST: "{{pgmailer_smtp_host}}"
+      SMTP_LOGIN: "{{pgmailer_smtp_login}}"
+      SMTP_PASSWORD: "{{pgmailer_smtp_password}}"
+      LOGLEVEL: "{{pgmailer_loglevel}}"
+      SENTRY_URL: "{{pgmailer_sentry_url}}"
+    volumes:
+      - "{{pgmailer_dir}}:/mnt/pgmailer:ro"
+    command: /mnt/pgmailer/pgmailer.py
+    restart_policy: always
+    restart: "{{__pgmailer_restart | default(false)}}"
+    pull: "{{__pgmailer_restart | default(false)}}"
+    state: "started"
