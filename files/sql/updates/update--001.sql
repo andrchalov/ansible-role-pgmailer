@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS pgmailer.outmsg(
   trackuid bigint,       -- tracking uid уникальный идентификатор письма для
                          -- отслеживания факта прочтения, устанавливается
                          -- извне
-
+  customdata hstore,
   sendattempts smallint NOT NULL DEFAULT 0,
   errlog text[],
 
@@ -72,6 +72,11 @@ CREATE INDEX outmsg_idx1
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
+CREATE INDEX outmsg_idx2
+  ON pgmailer.outmsg USING GIST (customdata);
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
 CREATE TRIGGER before_action
   BEFORE INSERT OR UPDATE
   ON pgmailer.outmsg
@@ -86,8 +91,6 @@ CREATE TRIGGER after_action
   FOR EACH ROW
   EXECUTE PROCEDURE pgmailer.outmsg_after_action();
 --------------------------------------------------------------------------------
-
-
 
 COMMENT ON SCHEMA pgmailer IS '0.0.1';
 
