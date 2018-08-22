@@ -17,7 +17,6 @@ GRANT USAGE ON SCHEMA pgmailer TO pgmailer_sender;
 \ir sender/error.sql
 \ir sender/take.sql
 
-\ir send.sql
 \ir version.sql
 
 -- updates
