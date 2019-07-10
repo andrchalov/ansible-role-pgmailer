@@ -14,7 +14,7 @@ DECLARE
   v_sendattempts smallint;
 BEGIN
   SELECT
-      id, from_email, from_name, to_email, to_name,
+      id, from_email, from_name, to_email, to_name, reply_email, reply_name,
       subject, body_text, body_html, sendattempts
     FROM pgmailer.outmsg
     WHERE state = 'queued'

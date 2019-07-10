@@ -22,3 +22,4 @@ GRANT USAGE ON SCHEMA pgmailer TO pgmailer_sender;
 -- updates
 
 \ir updates/update--001.sql
+\ir updates/update--002.sql

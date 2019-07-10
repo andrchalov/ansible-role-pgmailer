@@ -71,10 +71,15 @@ while 1:
       msg['Subject'] = outmsg['subject']
 
       from_addr = Address(display_name=outmsg['from_name'], addr_spec=outmsg['from_email'])
-      to_addr = Address(display_name=outmsg['to_name'], addr_spec=outmsg['to_email'])
-
       msg['From'] = from_addr.__str__()
+
+      to_addr = Address(display_name=outmsg['to_name'], addr_spec=outmsg['to_email'])
       msg['To'] = to_addr.__str__()
+
+      if outmsg['reply_email']:
+        reply_addr = Address(display_name=(outmsg['reply_name'] or ''), addr_spec=outmsg['reply_email'])
+        msg['Reply-To'] = reply_addr.__str__()
+        logging.debug(u'Reply-To %s', msg['Reply-To'])
 
       if outmsg['body_text']:
         msg.attach(MIMEText(outmsg['body_text'], 'plain'))
