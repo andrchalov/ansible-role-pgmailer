@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  author: Andrey Chalov
+  description: Ansible role for pgmailer extension
+  license: "license (BSD, MIT)"
+  min_ansible_version: 2.4
+  platforms:
+    - name: Ubuntu
+      versions:
+        - xenial
+        - bionic
+  galaxy_tags:
+    - pgmailer
+    - docker
+    - ubuntu
