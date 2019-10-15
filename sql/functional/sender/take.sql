@@ -16,7 +16,7 @@ BEGIN
   SELECT
       id, from_email, from_name, to_email, to_name, reply_email, reply_name,
       subject, body_text, body_html, sendattempts
-    FROM pgmailer.outmsg
+    FROM _pgmailer.outmsg
     WHERE state = 'queued'
     ORDER BY priority DESC, mo ASC
     LIMIT 1
@@ -24,7 +24,7 @@ BEGIN
     INTO v_outmsg;
   --
   IF found THEN
-    UPDATE pgmailer.outmsg
+    UPDATE _pgmailer.outmsg
       SET locked = now()
       WHERE id = v_outmsg.id
       RETURNING state, sendattempts INTO STRICT v_state, v_sendattempts;
@@ -40,8 +40,9 @@ BEGIN
     RETURN row_to_json(v_outmsg);
   ELSE
     -- actualize locked outmsg states
-    UPDATE pgmailer.outmsg SET id = id
-      WHERE state = ANY (array['locked', 'waiting']::pgmailer.outmsg_state[]);
+    UPDATE _pgmailer.outmsg
+      SET id = id
+      WHERE state = ANY ('{locked,waiting}');
 
     RETURN null;
   END IF;

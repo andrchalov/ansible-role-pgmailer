@@ -16,43 +16,38 @@ from email.headerregistry import Address
 from email.utils import make_msgid
 from email.utils import format_datetime
 from email.utils import localtime
-from raven import Client
+from utils.config import get_config
 
-PGHOST = os.environ.get('PGHOST', 'localhost')
-LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO')
-SENTRY_URL = os.environ.get('SENTRY_URL')
-SMTP_HOST = os.environ.get('SMTP_HOST')
-SMTP_PORT = os.environ.get('SMTP_PORT', 25)
-SMTP_LOGIN = os.environ.get('SMTP_LOGIN')
-SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
+CONFIG_TEMPLATE = (
+  ("SMTP_HOST", None, True),
+  ("SMTP_PORT", 25, False),
+  ("SMTP_LOGIN", None, True),
+  ("SMTP_PASSWORD", None, True),
+  ("LOGLEVEL", "INFO", False)
+)
 
-if not SENTRY_URL:
-  sys.exit('SENTRY_URL environment variable not specified')
+logger = logging.getLogger("main")
+config = get_config(CONFIG_TEMPLATE)
+logging.basicConfig(stream=sys.stdout, level=config["LOGLEVEL"])
 
-sentryClient = Client(SENTRY_URL)
+SMTP_HOST = config["SMTP_HOST"]
+SMTP_PORT = config["SMTP_PORT"]
+SMTP_LOGIN = config["SMTP_LOGIN"]
+SMTP_PASSWORD = config["SMTP_PASSWORD"]
 
-numeric_level = getattr(logging, LOGLEVEL.upper(), None)
-if not isinstance(numeric_level, int):
-  raise ValueError('Invalid log level: %s' % loglevel)
-
-logging.basicConfig(format = u'%(filename)s[LINE:%(lineno)d]# %(levelname)-2s [%(asctime)s] %(message)s', level = numeric_level)
-
-####
-
-conn = psycopg2.connect(host=PGHOST)
+conn = psycopg2.connect("")
 conn.autocommit = True
 
-cur = conn.cursor()
+curs = conn.cursor()
 
-cur.execute('LISTEN "pgmailer:queued_outmsg"')
+curs.execute('LISTEN "pgmailer:queued_outmsg"')
 smtpconn = None
 
 while 1:
   logging.debug(u'Fetching new outmsg')
-  cur.execute('SELECT * FROM pgmailer.sender_take()')
-  res = cur.fetchone()
+  curs.execute('SELECT * FROM pgmailer.sender_take()')
+  res = curs.fetchone()
   outmsg = res[0]
-  print(outmsg)
 
   if outmsg:
     outmsg_id = outmsg['id']
@@ -94,14 +89,13 @@ while 1:
 
       smtpconn.send_message(msg)
 
-      cur.execute('SELECT pgmailer.sender_complete(%s)', (outmsg_id,))
+      curs.execute('SELECT pgmailer.sender_complete(%s)', (outmsg_id,))
 
       logging.debug(u'Outmsg #%s sended', outmsg_id)
 
     except Exception:
       logging.error(u'%s', sys.exc_info()[1].args[0])
-      sentryClient.captureException()
-      cur.execute('SELECT pgmailer.sender_error(%s, %s::text)', (outmsg_id, sys.exc_info()[1].args[0]))
+      curs.execute('SELECT pgmailer.sender_error(%s, %s::text)', (outmsg_id, sys.exc_info()[1].args[0]))
       smtpconn = None
       time.sleep(10)
 
@@ -113,7 +107,7 @@ while 1:
 
   wait = True
   while wait:
-    if select.select([conn],[],[],5) != ([],[],[]):
+    if select.select([conn],[],[],30) != ([],[],[]):
       while conn.notifies:
         notify = conn.notifies.pop(0)
         logging.debug(u'Getting notification %s', notify.channel)

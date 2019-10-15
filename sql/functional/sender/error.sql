@@ -11,7 +11,7 @@ CREATE OR REPLACE FUNCTION pgmailer.sender_error(
   SECURITY DEFINER
 AS $function$
 BEGIN
-  UPDATE pgmailer.outmsg
+  UPDATE _pgmailer.outmsg
     SET errlog = array_append(errlog, date_trunc('minute', now())||' - '||a_error)
     WHERE id = a_outmsg_id
       AND state = 'locked';

@@ -16,7 +16,7 @@ BEGIN
     NEW.from_name = COALESCE(NEW.from_name, '');
     NEW.to_name = COALESCE(NEW.to_name, '');
   END IF;
-  
+
   IF TG_OP = 'UPDATE' THEN
     IF NEW.locked NOTNULL AND NEW.locked IS DISTINCT FROM OLD.locked THEN
       NEW.sendattempts = NEW.sendattempts + 1;
@@ -37,7 +37,7 @@ BEGIN
         THEN 'waiting'
       ELSE
         'queued'
-    END::pgmailer.outmsg_state;
+    END;
 
 	RETURN NEW;
 END;

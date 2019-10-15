@@ -1,7 +1,9 @@
 ---
-pgmailer_dir: /srv/pgmailer
-pgmailer_docker_image: andrchalov/psycopg2:latest
-pgmailer_loglevel: "error"
+pgmailer_docker_name: pgmailer
+pgmailer_docker_image: andrchalov/pgmailer:latest
+pgmailer_user: pgmailer
+pgmailer_password: ''
+pgmailer_loglevel: ERROR
 
 # pgmailer_pghost:
 # pgmailer_pgdatabase:
